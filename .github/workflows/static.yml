@@ -1,43 +1,135 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Product Store</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    .product {
+      cursor: pointer;
+      background-color: #f0f0f0;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    .product:hover {
+      background-color: #e0e0e0;
+    }
+    #cart, #receipt {
+      margin-top: 20px;
+    }
+    #receipt {
+      display: none;
+    }
+    button {
+      padding: 10px 15px;
+      margin-top: 10px;
+      font-size: 1rem;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      .product {
+        font-size: 0.95rem;
+      }
+      button {
+        width: 100%;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>My Product Store</h1>
+  <div id="product-list">
+    <!-- Products will be listed here -->
+  </div>
 
-on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
+  <div id="cart">
+    <h2>Cart</h2>
+    <ul id="cart-items"></ul>
+  </div>
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+  <button onclick="showReceipt()">Buy</button>
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+  <div id="receipt">
+    <h2>Receipt</h2>
+    <ul id="receipt-items"></ul>
+    <p><strong>Total: $<span id="total"></span></strong></p>
+    <button onclick="copyReceipt()">Copy Receipt</button>
+  </div>
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  <script>
+    const products = [
+      { name: "Product A", price: 10 },
+      { name: "Product B", price: 20 },
+      { name: "Product C", price: 5 },
+      { name: "Product D", price: 15 }
+    ];
 
-jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    const cart = [];
+
+    const productList = document.getElementById("product-list");
+    const cartItems = document.getElementById("cart-items");
+    const receiptItems = document.getElementById("receipt-items");
+    const totalElem = document.getElementById("total");
+
+    products.forEach((product, index) => {
+      const div = document.createElement("div");
+      div.className = "product";
+      div.textContent = `${product.name} - $${product.price}`;
+      div.onclick = () => {
+        cart.push(product);
+        const li = document.createElement("li");
+        li.textContent = `${product.name} - $${product.price}`;
+        cartItems.appendChild(li);
+      };
+      productList.appendChild(div);
+    });
+
+    function showReceipt() {
+      receiptItems.innerHTML = "";
+      let total = 0;
+      cart.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.name} - $${item.price}`;
+        receiptItems.appendChild(li);
+        total += item.price;
+      });
+      totalElem.textContent = total.toFixed(2);
+      document.getElementById("receipt").style.display = "block";
+    }
+
+    function copyReceipt() {
+      let receiptText = "Receipt:\n";
+      cart.forEach(item => {
+        receiptText += `${item.name} - $${item.price}\n`;
+      });
+      receiptText += `Total: $${totalElem.textContent}`;
+
+      navigator.clipboard.writeText(receiptText)
+        .then(() => alert("Receipt copied to clipboard!"))
+        .catch(err => alert("Failed to copy receipt."));
+    }
+  </script>
+</body>
+</html>
